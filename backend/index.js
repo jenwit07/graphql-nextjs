@@ -3,6 +3,7 @@ const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const mongoose = require('mongoose');
+const cors = require('cors');
 
 // Define a schema
 const schema = buildSchema(`
@@ -21,29 +22,44 @@ const schema = buildSchema(`
   }
 `);
 
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/news', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+const News = mongoose.model('News', {
+  title: String,
+  content: String
+});
+
 // Root resolver
 const root = {
   getNews: () => {
-    // Fetch news from the database
+    // Get news from the database
+    return News.find();
   },
   addNews: ({ title, content }) => {
     // Add news to the database
-  },
+    const news = new News({ title, content });
+    return news.save();
+  }
 };
 
 const app = express();
 
-// Connect to MongoDB
-mongoose.connect('mongodb://mongo:27017/news', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+app.use(cors());
 
 // GraphQL endpoint
-app.use('/graphql', graphqlHTTP({
-  schema: schema,
-  rootValue: root,
-  graphiql: true,
-}));
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: schema,
+    rootValue: root,
+    graphiql: true
+  })
+);
 
-app.listen(4000, () => console.log('Server running on http://localhost:4000/graphql'));
+app.listen(4000, () =>
+  console.log('Server running on http://localhost:4000/graphql')
+);
