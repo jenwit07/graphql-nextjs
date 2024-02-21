@@ -17,7 +17,11 @@ cd news-service
 
 2.Build and Start the Containers
 ```sh
-docker-compose up --build
+docker-compose up --d
+cd ./backend
+node index.js
+cd ../frontend
+npm run dev
 ```
 
 3.Access the Application
